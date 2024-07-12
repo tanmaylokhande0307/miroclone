@@ -9,6 +9,10 @@ import { Footer } from "./footer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Actions } from "@/components/actions";
 import { MoreHorizontal } from "lucide-react";
+import { useApiMutations } from "@/hooks/use-api-mutations";
+import { api } from "@/convex/_generated/api";
+import { unFavourite } from "@/convex/board";
+import { toast } from "sonner";
 
 interface BoardCardProps {
   authorId: string;
@@ -36,6 +40,22 @@ export const BoardCard = ({
   const authorLabel = userId === authorId ? "You" : authorName;
   const createdAtLabel = formatDistanceToNow(createdAt, { addSuffix: true });
 
+  const { mutate: onFavourite, pending: pendingFavourite } = useApiMutations(
+    api.board.favourite
+  );
+  const { mutate: onUnFavourite, pending: pendingUnFavourite } =
+    useApiMutations(api.board.unFavourite);
+
+  const toggleFavourite = () => {
+    if (isFavourite) {
+      onUnFavourite({ id }).catch(() => toast.error("Falied to unfavourite"));
+    } else {
+      onFavourite({ id, orgId }).catch(() =>
+        toast.error("Failed to favourite")
+      );
+    }
+  };
+
   return (
     <Link href={`/board/${id}`}>
       <div className="group aspect-[100/127] flex flex-col overflow-hidden border rounded-lg justify-between">
@@ -53,8 +73,8 @@ export const BoardCard = ({
           createdAtLabel={createdAtLabel}
           isFavourite={isFavourite}
           title={title}
-          onClick={() => {}}
-          disabled={false}
+          onClick={toggleFavourite}
+          disabled={pendingFavourite || pendingUnFavourite}
         />
       </div>
     </Link>
