@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useRenameModal } from "@/store/use-rename-modal";
 
 interface InfoProps {
   boardId: string;
@@ -19,10 +20,16 @@ const font = Poppins({
   weight: ["600"],
 });
 
+const TabSeparator = () => {
+  return <div className="text-neutral-300 px-1.5">|</div>;
+};
+
 export const Info = ({ boardId }: InfoProps) => {
   const data = useQuery(api.board.get, {
     id: boardId as Id<"boards">,
   });
+
+  const { onOpen } = useRenameModal();
 
   if (!data) return <InfoSkeleton />;
 
@@ -40,6 +47,14 @@ export const Info = ({ boardId }: InfoProps) => {
             MBoard
           </span>
         </Link>
+      </Button>
+      <TabSeparator />
+      <Button
+        variant="board"
+        className="text-base font-normal px-2"
+        onClick={() => onOpen(data._id, data.title)}
+      >
+        {data.title}
       </Button>
     </div>
   );
