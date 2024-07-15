@@ -1,4 +1,4 @@
-import { Camera, Color, Point, Side, XYWH } from "@/types/canvas";
+import { Camera, Color, Layer, Point, Side, XYWH } from "@/types/canvas";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -49,10 +49,47 @@ export function resizeBounds(bounds: XYWH, corner: Side, point: Point): XYWH {
     result.height = Math.abs(bounds.y + bounds.height - point.y);
   }
 
-  if((corner & Side.Bottom) === Side.Bottom){
+  if ((corner & Side.Bottom) === Side.Bottom) {
     result.y = Math.min(point.y, bounds.y);
-    result.height = Math.abs(point.y - bounds.y);  
+    result.height = Math.abs(point.y - bounds.y);
   }
 
   return result;
+}
+
+export function findIntersectingLayersWithRectangle(
+  layerIds: readonly string[],
+  layers: ReadonlyMap<string, Layer>,
+  a: Point,
+  b: Point
+) {
+  const rectangle = {
+    x: Math.min(a.x, b.x),
+    y: Math.min(a.y, b.y),
+    width: Math.abs(a.x - b.x),
+    height: Math.abs(a.y - b.y),
+  };
+
+  const ids = [];
+
+  for (const layerId of layerIds) {
+    const layer = layers.get(layerId);
+
+    if (layer === null) {
+      continue;
+    }
+
+    const { x, y, height, width } = layer;
+
+    if (
+      rectangle.x + rectangle.width > x &&
+      rectangle.x < x + width &&
+      rectangle.y + rectangle.height > y &&
+      rectangle.y < y + height
+    ) {
+      ids.push(layerId);
+    }
+  }
+
+  return ids;
 }
